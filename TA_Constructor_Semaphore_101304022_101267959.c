@@ -88,7 +88,7 @@ int main(int argc, char** argv){
 			sprintf(aKey, "%d", arrayKey);
                         sprintf(cKey, "%d", counterKey);
 			sprintf(semID, "%d", semaphoreID);
-			int execTest = execlp("./TA_Body2", TA_id, sKey, rKey, aKey, cKey, semID, NULL);
+			int execTest = execlp("./TA_Body_Semaphore", TA_id, sKey, rKey, aKey, cKey, semID, NULL);
                         if (execTest == -1){
 				perror("EXEC FAIL");
 				break;
