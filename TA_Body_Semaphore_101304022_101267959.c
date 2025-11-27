@@ -28,25 +28,25 @@ int main(int argc, char** argv){
 
 	struct sembuf init = {0, -1, SEM_UNDO};
 	struct sembuf rubric = {1, -1, SEM_UNDO};
-        struct sembuf question = {2, -1, SEM_UNDO};
-        struct sembuf loop = {3, -1, SEM_UNDO};
+    struct sembuf question = {2, -1, SEM_UNDO};
+	struct sembuf loop = {3, -1, SEM_UNDO};
 
 	if ((studentText = (char *)shmat(atoi(argv[1]), NULL, 0)) == (char *)-1) {
-               	perror("S shmat failed");
-               	return 1;
+		perror("S shmat failed");
+    	return 1;
 	}
 	if ((counter = (int*)shmat(atoi(argv[4]), NULL, 0)) == (int*)-1) {
-               	perror("C shmat failed");
-               	return 1;
-       	}
+       	perror("C shmat failed");
+		return 1;
+    }
 	if ((rubricText = (char *)shmat(atoi(argv[2]), NULL, 0)) == (char *)-1) {
-        	perror("R shmat failed");
-                return 1;
-        }
+		perror("R shmat failed");
+        return 1;
+	}
 	if ((array = (int *)shmat(atoi(argv[3]), NULL, 0)) == (int *)-1) {
-               	perror("A shmat failed");
-               	return 1;
-       	}
+		perror("A shmat failed");
+       	return 1;
+	}
 	semID = atoi(argv[5]);
 	init.sem_op = -1;
 	semop(semID, &init, 1);
@@ -54,9 +54,9 @@ int main(int argc, char** argv){
 		*counter = 1;
 		init.sem_op = 1;
 		semop(semID, &init, 1);
-    		fs = fopen("Student1.txt", "r");
+		fs = fopen("Student1.txt", "r");
 		if (fs == NULL) {
-            		printf("initial file open fail");
+			printf("initial file open fail");
 			perror("Error opening file");
 			return 1;
 		}
@@ -64,19 +64,19 @@ int main(int argc, char** argv){
 		studentNum = studentText;
 		printf("Accessed exam of student %s. (TA ID: %d)\n", studentNum, id);
 		if (fclose(fs) != 0) {
-       			perror("Error closing file");
+       		perror("Error closing file");
 			return 1;
 		}
 		fr = fopen("rubric.txt", "r");
 		if (fr == NULL) {
-                	printf("file open fail rubric\n");
-                       	perror("Error opening file");
-                       	return 1;
+			printf("file open fail rubric\n");
+           	perror("Error opening file");
+			return 1;
 		}
 		fread(rubricText, sizeof(char), 20, fr);
 		rubricText[19] = '\0';
 		if (fclose(fr) != 0) {
-                        perror("Error closing file");
+            perror("Error closing file");
 			return 1;
 		}
 	}
@@ -99,18 +99,18 @@ int main(int argc, char** argv){
 				else rubricText[index] += 1;
 				printf("%s\n", rubricText);
 				fr = fopen("rubric.txt", "w");
-                        	if (fr == NULL) {
-                               		printf("file open fail for rubric.\n");
-                               		perror("Error opening file");
-                               		return 1;
-                       		}
+				if (fr == NULL) {
+					printf("file open fail for rubric.\n");
+               		perror("Error opening file");
+					return 1;
+           		}
 				if (fputs(rubricText, fr) == EOF) {
-				        perror("Error writing new content to file");
+			        perror("Error writing new content to file");
 					return 1;
 				}
 				if (fclose(fr) != 0) {
-                               		perror("Error closing file");
-                       			return 1;
+					perror("Error closing file");
+           			return 1;
 				}
 				rubric.sem_op = 1;
 				semop(semID, &rubric, 1);
@@ -132,7 +132,7 @@ int main(int argc, char** argv){
 				array[x] = 2;
 			}
 			else{
-                                question.sem_op = 1;
+				question.sem_op = 1;
 				semop(semID, &question, 1);
 			}
 		}
@@ -141,12 +141,12 @@ int main(int argc, char** argv){
 			semop(semID, &loop, 1);
 			sum = 0;
 			for (int i = 0; i < 5; i++){
-                 	       	sum += array[i];
-                	}
+				sum += array[i];
+            	}
 			if (sum == 10){
 				for (int i = 0; i < 5; i++) array[i] = 0;
 				loop.sem_op = 1;
-                                semop(semID, &loop, 1);
+                semop(semID, &loop, 1);
  				*counter += 1;
 				printf("Student %s has been graded. (TA ID: %d)\n", studentNum, id);
 				sprintf(filename, "Student%d.txt", *counter);
@@ -156,30 +156,32 @@ int main(int argc, char** argv){
 					break;
 				}
 				if (fs == NULL) {
-                        		printf("loop file open fail");
-                        		perror("Error opening file");
-                        		return 1;
-                		}
-                		fgets(studentText, sizeof(char) * 5, fs);
-		                studentNum = studentText;
-        		        printf("Accessed exam of student %s. (TA ID: %d)\n", studentNum, id);
-        		        if (fclose(fs) != 0) {
-                		        perror("Error closing file");
-                		        return 1;
-                		}
+            		printf("loop file open fail");
+            		perror("Error opening file");
+            		return 1;
+                }
+                fgets(studentText, sizeof(char) * 5, fs);
+		        loop.sem_op = 1;
+                semop(semID, &loop, 1);
+				studentNum = studentText;
+		        printf("Accessed exam of student %s. (TA ID: %d)\n", studentNum, id);
+				if (fclose(fs) != 0) {
+            		perror("Error closing file");
+                    return 1;
+        		}
 				break;
 			}
 			if (sum < 5){
-                                studentNum = studentText;
-                                loop.sem_op = 1;
-                                semop(semID, &loop, 1);
-                                break;
-                        }
-                        if (sum >= 5 && sum < 10){
-                                loop.sem_op = 1;
-                                semop(semID, &loop, 1);
-                                continue;
-                        }
+                studentNum = studentText;
+				loop.sem_op = 1;
+                semop(semID, &loop, 1);
+            	break;
+            }
+            if (sum >= 5 && sum < 10){
+				loop.sem_op = 1;
+                semop(semID, &loop, 1);
+				continue;
+            }
 		}
 		if (*counter == 34) break;
 	}
