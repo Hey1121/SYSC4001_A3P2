@@ -145,8 +145,6 @@ int main(int argc, char** argv){
             	}
 			if (sum == 10){
 				for (int i = 0; i < 5; i++) array[i] = 0;
-				loop.sem_op = 1;
-                semop(semID, &loop, 1);
  				*counter += 1;
 				printf("Student %s has been graded. (TA ID: %d)\n", studentNum, id);
 				sprintf(filename, "Student%d.txt", *counter);
